@@ -1,0 +1,6 @@
+Input: ['flatten_input']
+Output: ['output/Softmax']
+Input shape: (None, 28, 28)
+Output shape: (None, 10)
+Test image index: 1234
+Test image label: 8

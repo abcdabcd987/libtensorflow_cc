@@ -1,4 +1,6 @@
 build/
+examples/mnist/mnist
 
 .vscode/
 .mypy_cache/
+.python-version
