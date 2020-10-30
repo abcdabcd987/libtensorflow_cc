@@ -1,0 +1,35 @@
+name: Tarball
+on:
+  push:
+    paths:
+    - 'examples/**'
+    - '.github/workflows/**'
+  pull_request:
+    paths:
+    - 'examples/**'
+    - '.github/workflows/**'
+
+jobs:
+  cpu:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        tarball:
+        - v2.3.1/libtensorflow_cc-v2.3.1-cpu-build20201029.tar.bz2
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download libtensorflow_cc tarball
+      run: |
+        mkdir -p build
+        cd build
+        wget -q -O release.tar.bz2 https://github.com/abcdabcd987/libtensorflow_cc/releases/download/${{ matrix.tarball }}
+        tar xf release.tar.bz2
+        mv libtensorflow_cc* libtensorflow_cc
+    - name: Build example
+      run: |
+        cd examples/mnist
+        make CUDA= LIBTENSORFLOW_CC=../../build/libtensorflow_cc
+    - name: Run example
+      run: |
+        cd examples/mnist
+        ./mnist
