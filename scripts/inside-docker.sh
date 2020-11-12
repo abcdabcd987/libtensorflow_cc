@@ -18,12 +18,13 @@ BAZEL_CONFIGS="${BAZEL_CONFIGS:-""}"
 
 # Install build tools
 apt-get update
-apt-get install -y build-essential python python3 python3-dev python3-numpy git wget automake libtool unzip
+apt-get install -y build-essential python python3 python3-dev python3-numpy git wget automake libtool unzip patchelf
 
 # Clone and checkout TensorFlow
 git clone https://github.com/tensorflow/tensorflow.git
 cd tensorflow
 git checkout $TF_VER
+TF_COMMIT=$(git rev-parse HEAD)
 
 # Install bazel with the version specified by TensorFlow
 BAZEL_VER=$(grep -Po "(?<=_TF_MIN_BAZEL_VERSION = ')(.+?)(?=')" configure.py)
@@ -37,7 +38,7 @@ ln -s /usr/bin/bazel-$BAZEL_VER-linux-x86_64 /usr/bin/bazel
 HEADERS_LINE=$(grep -n 'name = "headers"' tensorflow/core/BUILD | cut -d : -f 1)
 sed -i "$HEADERS_LINE,+5s/:core_cpu/:core/" tensorflow/core/BUILD
 
-# Build libtensorflow_cc 
+# Build libtensorflow_cc
 ./configure
 bazel build --config=opt \
     $BAZEL_CONFIGS \
@@ -60,17 +61,39 @@ make install
 cd ..
 rm protobuf-$PROTOBUF_VER.zip
 
-# Create package.
+# Create package
 mkdir libtensorflow_cc
-mkdir libtensorflow_cc/lib
-cp -P tensorflow/bazel-out/k8-opt/bin/tensorflow/libtensorflow_*.so* libtensorflow_cc/lib/
-rm libtensorflow_cc/lib/*.params
-cp -RP tensorflow/bazel-out/k8-opt/bin/tensorflow/include libtensorflow_cc/
-rm -rf libtensorflow_cc/include/src
-cp -P protobuf-$PROTOBUF_VER/build/lib/libprotobuf.a libtensorflow_cc/lib/
-cp -RP protobuf-$PROTOBUF_VER/build/include/* libtensorflow_cc/include/
-DIR_NAME="libtensorflow_cc-$TF_VER"
-TAR_NAME="libtensorflow_cc-$TF_VER-$BUILD_SUFFIX-build$(date "+%Y%m%d").tar.bz2"
+
+# Copy TensorFlow
+mkdir libtensorflow_cc/tensorflow
+mkdir libtensorflow_cc/tensorflow/lib
+cp -P tensorflow/bazel-out/k8-opt/bin/tensorflow/libtensorflow_*.so* libtensorflow_cc/tensorflow/lib/
+rm libtensorflow_cc/tensorflow/lib/*.params
+cp -RP tensorflow/bazel-out/k8-opt/bin/tensorflow/include libtensorflow_cc/tensorflow/
+rm -rf libtensorflow_cc/tensorflow/include/src
+
+# Copy Protobuf
+cp -RP protobuf-$PROTOBUF_VER/build libtensorflow_cc/protobuf
+LIBPROTOC_NAME=$(ldd libtensorflow_cc/protobuf/bin/protoc  | grep -Po "libprotoc.so.\d+" | head -n 1)
+patchelf --replace-needed $LIBPROTOC_NAME "\$ORIGIN/../lib/$LIBPROTOC_NAME" libtensorflow_cc/protobuf/bin/protoc
+
+# Copy LICENSE
+cp tensorflow/LICENSE  libtensorflow_cc/LICENSE-tensorflow
+cp protobuf-$PROTOBUF_VER/LICENSE  libtensorflow_cc/LICENSE-protobuf
+
+# Create BUILDINFO
+BUILD_DATE=$(date "+%Y%m%d")
+echo "libtensorflow_cc-$TF_VER-$BUILD_SUFFIX-build$BUILD_DATE" >> libtensorflow_cc/BUILDINFO
+echo "TensorFlow git version: $TF_COMMIT" >> libtensorflow_cc/BUILDINFO
+echo "Protobuf version: $PROTOBUF_VER" >> libtensorflow_cc/BUILDINFO
+echo "Bazel version: $BAZEL_VER" >> libtensorflow_cc/BUILDINFO
+echo "Bazel build configs: $BAZEL_CONFIGS" >> libtensorflow_cc/BUILDINFO
+echo ".tf_configure.bazelrc:" >> libtensorflow_cc/BUILDINFO
+grep "^build" tensorflow/.tf_configure.bazelrc >> libtensorflow_cc/BUILDINFO
+
+# Create tarball
+DIR_NAME="libtensorflow_cc-$TF_VER-$BUILD_SUFFIX"
+TAR_NAME="libtensorflow_cc-$TF_VER-$BUILD_SUFFIX-build$BUILD_DATE.tar.bz2"
 mv libtensorflow_cc $DIR_NAME
 tar -cjf $TAR_NAME $DIR_NAME
 mkdir -p build
