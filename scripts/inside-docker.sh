@@ -76,6 +76,8 @@ rm -rf libtensorflow_cc/tensorflow/include/src
 cp -RP protobuf-$PROTOBUF_VER/build libtensorflow_cc/protobuf
 LIBPROTOC_NAME=$(ldd libtensorflow_cc/protobuf/bin/protoc  | grep -Po "libprotoc.so.\d+" | head -n 1)
 patchelf --replace-needed $LIBPROTOC_NAME "\$ORIGIN/../lib/$LIBPROTOC_NAME" libtensorflow_cc/protobuf/bin/protoc
+LIBPROTOBUF_NAME=$(ldd libtensorflow_cc/protobuf/bin/protoc  | grep -Po "libprotobuf.so.\d+" | head -n 1)
+patchelf --add-needed "\$ORIGIN/../lib/$LIBPROTOBUF_NAME" libtensorflow_cc/protobuf/bin/protoc
 
 # Copy LICENSE
 cp tensorflow/LICENSE  libtensorflow_cc/LICENSE-tensorflow

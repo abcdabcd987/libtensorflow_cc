@@ -29,6 +29,7 @@ tensorflow::SessionOptions BuildSessionOptions() {
   auto* gpu_options = options.config.mutable_gpu_options();
   gpu_options->set_allocator_type("BFC");
   gpu_options->set_visible_device_list("0");
+  gpu_options->set_allow_growth(true);
   return options;
 }
 
@@ -83,6 +84,7 @@ void WriteTensor(tensorflow::Tensor* dst, const std::vector<float>& src) {
   void* pdst = const_cast<char*>(dst->tensor_data().data());
   const void* psrc = src.data();
   size_t nbytes = sizeof(src[0]) * src.size();
+  printf("WriteTensor dst=%p src=%p\n", pdst, psrc);
 #ifdef USE_GPU
   auto err = cudaMemcpy(pdst, psrc, nbytes, cudaMemcpyHostToDevice);
   CHECK(err == cudaSuccess) << cudaGetErrorString(err);
