@@ -10,8 +10,6 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 PRESETS = {
     # The preset parameters are different from the official pip release.
     "default": dict(
-        PYTHON_BIN_PATH="/usr/bin/python3",
-        PYTHON_LIB_PATH="/usr/local/lib/python3.6/dist-packages",
         TF_ENABLE_XLA=0,
         TF_NEED_OPENCL_SYCL=0,
         TF_NEED_ROCM=0,
@@ -34,6 +32,12 @@ PRESETS = {
         TF_CUDA_COMPUTE_CAPABILITIES="sm_35,sm_37,sm_52,sm_60,sm_61,compute_70",
         DOCKER_IMAGE_GPU="nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04",
         DOCKER_IMAGE_CPU="ubuntu:18.04",
+    ),
+    # Ref: https://github.com/tensorflow/tensorflow/blob/v2.4.0/tensorflow/tools/ci_build/release/ubuntu_16/gpu_pip_on_cpu/build.sh
+    "tensorflow-2.4.0": dict(
+        TF_CUDA_COMPUTE_CAPABILITIES="sm_35,sm_50,sm_60,sm_70,sm_75,compute_80",
+        DOCKER_IMAGE_GPU="nvidia/cuda:11.2.2-cudnn8-devel-ubuntu20.04",
+        DOCKER_IMAGE_CPU="ubuntu:20.04",
     ),
 }
 

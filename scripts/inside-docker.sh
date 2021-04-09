@@ -7,7 +7,7 @@ case "$TF_NEED_CUDA" in
         ;;
     [1yY])
         CUDA_VER="$(readlink -f /usr/local/cuda | sed "s|/usr/local/cuda-||")"
-        CUDNN_MAJOR="$(grep -Po "(?<=#define CUDNN_MAJOR )(\d+)" /usr/include/cudnn.h)"
+        CUDNN_MAJOR="$(gcc -I /usr/local/cuda/include -E -CC -dM /usr/include/cudnn.h | grep -Po "(?<=#define CUDNN_MAJOR )(\d+)")"
         BUILD_SUFFIX="gpu-cuda$CUDA_VER-cudnn$CUDNN_MAJOR"
         ;;
     *)
@@ -39,6 +39,8 @@ HEADERS_LINE=$(grep -n 'name = "headers"' tensorflow/core/BUILD | cut -d : -f 1)
 sed -i "$HEADERS_LINE,+5s/:core_cpu/:core/" tensorflow/core/BUILD
 
 # Build libtensorflow_cc
+export PYTHON_BIN_PATH=$(which python3)
+export PYTHON_LIB_PATH=$(python3 -c 'import site; print(site.getsitepackages()[0])')
 ./configure
 bazel build --config=opt \
     $BAZEL_CONFIGS \
