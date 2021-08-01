@@ -18,20 +18,24 @@ BAZEL_CONFIGS="${BAZEL_CONFIGS:-""}"
 
 # Install build tools
 apt-get update
-apt-get install -y build-essential python python3 python3-dev python3-numpy git wget automake libtool unzip patchelf
+apt-get install -y build-essential python python-six python3 python3-dev python3-numpy python3-six git wget automake libtool unzip patchelf
 
 # Clone and checkout TensorFlow
-git clone https://github.com/tensorflow/tensorflow.git
+[ ! -d "tensorflow" ] && git clone https://github.com/tensorflow/tensorflow.git
 cd tensorflow
 git checkout $TF_VER
 TF_COMMIT=$(git rev-parse HEAD)
 
 # Install bazel with the version specified by TensorFlow
-BAZEL_VER=$(grep -Po "(?<=_TF_MIN_BAZEL_VERSION = ')(.+?)(?=')" configure.py)
+if [ -f .bazelversion ]; then
+    BAZEL_VER=$(cat .bazelversion | tr -d '\n')
+else
+    BAZEL_VER=$(grep -Po "(?<=_TF_MIN_BAZEL_VERSION = ')(.+?)(?=')" configure.py)
+fi
 wget https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VER/bazel-$BAZEL_VER-linux-x86_64
 chmod +x bazel-$BAZEL_VER-linux-x86_64
 mv bazel-$BAZEL_VER-linux-x86_64 /usr/bin
-ln -s /usr/bin/bazel-$BAZEL_VER-linux-x86_64 /usr/bin/bazel
+ln -sf /usr/bin/bazel-$BAZEL_VER-linux-x86_64 /usr/bin/bazel
 
 # Fix the "//tensorflow:install_headers" target.
 # See: https://github.com/tensorflow/tensorflow/issues/35576
@@ -41,16 +45,23 @@ sed -i "$HEADERS_LINE,+5s/:core_cpu/:core/" tensorflow/core/BUILD
 # Build libtensorflow_cc
 export PYTHON_BIN_PATH=$(which python3)
 export PYTHON_LIB_PATH=$(python3 -c 'import site; print(site.getsitepackages()[0])')
+if [ -z "$CROSSTOOL_TOP" ]; then
+    CROSSTOOL_TOP_CONFIG=""
+else
+    CROSSTOOL_TOP_CONFIG="--crosstool_top=$CROSSTOOL_TOP"
+fi
 ./configure
 bazel build --config=opt \
     $BAZEL_CONFIGS \
+    $CROSSTOOL_TOP_CONFIG \
     //tensorflow:libtensorflow_cc.so \
     //tensorflow:libtensorflow_framework.so \
     //tensorflow:install_headers
 cd ..
 
 # Build the same version of protobuf as what TensorFlow uses
-PROTOBUF_URL=$(grep -A 12 'name = "com_google_protobuf"' tensorflow/tensorflow/workspace.bzl | grep -Eo 'https://.*\.zip' | tail -n 1)
+# TODO: manylinux2010
+PROTOBUF_URL=$(grep -A 12 'name = "com_google_protobuf"' tensorflow/tensorflow/workspace*.bzl | grep -Eo 'https://.*\.zip' | tail -n 1)
 PROTOBUF_VER=$(echo "$PROTOBUF_URL" | grep -Po '(?<=/v)(.+?)(?=\.zip)')
 wget $PROTOBUF_URL -O protobuf-$PROTOBUF_VER.zip
 unzip -q protobuf-$PROTOBUF_VER.zip
