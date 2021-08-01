@@ -25,9 +25,9 @@ PRESETS = {
         CC_OPT_FLAGS="-Wno-sign-compare",
         BAZEL_CONFIGS="--config=noaws --config=nogcp --config=nohdfs --config=nonccl --config=avx_linux",
         DOCKER_IMAGE="",
-        DOCKER_IMAGE_GPU="gcr.io/tensorflow-testing/nosla-cuda11.2-cudnn8.1-ubuntu18.04-manylinux2010-multipython",
-        DOCKER_IMAGE_CPU="gcr.io/tensorflow-testing/nosla-cuda11.2-cudnn8.1-ubuntu18.04-manylinux2010-multipython",
-        CROSSTOOL_TOP="<autodetect>",
+        DOCKER_IMAGE_GPU="nvidia/cuda:11.2.0-cudnn8-devel-ubuntu18.04",
+        DOCKER_IMAGE_CPU="ubuntu:18.04",
+        CROSSTOOL_TOP="",
         CROSSTOOL_TOP_GPU="@org_tensorflow//third_party/toolchains/preconfig/ubuntu16.04/gcc7_manylinux2010-nvcc-cuda11.2:toolchain",
         CROSSTOOL_TOP_CPU="@org_tensorflow//third_party/toolchains/preconfig/ubuntu16.04/gcc7_manylinux2010:toolchain",
     ),
@@ -49,18 +49,14 @@ PRESETS = {
     # Ref: https://github.com/tensorflow/tensorflow/blob/v2.4.0/.bazelrc
     "tensorflow-2.4.0": dict(
         TF_CUDA_COMPUTE_CAPABILITIES="sm_35,sm_50,sm_60,sm_70,sm_75,compute_80",
-        DOCKER_IMAGE_GPU="gcr.io/tensorflow-testing/nosla-cuda11.0-cudnn8-ubuntu18.04-manylinux2010-multipython",
-        DOCKER_IMAGE_CPU="gcr.io/tensorflow-testing/nosla-cuda11.0-cudnn8-ubuntu18.04-manylinux2010-multipython",
-        CROSSTOOL_TOP_GPU="//third_party/toolchains/preconfig/ubuntu16.04/gcc7_manylinux2010-nvcc-cuda11:toolchain",
-        CROSSTOOL_TOP_CPU="//third_party/toolchains/preconfig/ubuntu16.04/gcc7_manylinux2010:toolchain",
+        DOCKER_IMAGE_GPU="nvidia/cuda:11.0-cudnn8-devel-ubuntu18.04",
+        DOCKER_IMAGE_CPU="ubuntu:18.04",
     ),
     # Ref: https://github.com/tensorflow/tensorflow/blob/v2.5.0/.bazelrc
     "tensorflow-2.5.0": dict(
         TF_CUDA_COMPUTE_CAPABILITIES="sm_35,sm_50,sm_60,sm_70,sm_75,compute_80",
-        DOCKER_IMAGE_GPU="gcr.io/tensorflow-testing/nosla-cuda11.2-cudnn8.1-ubuntu18.04-manylinux2010-multipython",
-        DOCKER_IMAGE_CPU="gcr.io/tensorflow-testing/nosla-cuda11.2-cudnn8.1-ubuntu18.04-manylinux2010-multipython",
-        CROSSTOOL_TOP_GPU="//third_party/toolchains/preconfig/ubuntu16.04/gcc7_manylinux2010-nvcc-cuda11.2:toolchain",
-        CROSSTOOL_TOP_CPU="//third_party/toolchains/preconfig/ubuntu16.04/gcc7_manylinux2010:toolchain",
+        DOCKER_IMAGE_GPU="nvidia/cuda:11.2.0-cudnn8-devel-ubuntu18.04",
+        DOCKER_IMAGE_CPU="ubuntu:18.04",
     ),
 }
 
