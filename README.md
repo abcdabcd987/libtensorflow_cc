@@ -1,8 +1,5 @@
 # libtensorflow_cc
 
-[![Actions Status](https://github.com/abcdabcd987/libtensorflow_cc/workflows/Tarball/badge.svg)](https://github.com/abcdabcd987/libtensorflow_cc/actions)
-
-
 Build TensorFlow C++ APIs with ease.
 See [Releases](https://github.com/abcdabcd987/libtensorflow_cc/releases) for prebuilt tarballs.
 
