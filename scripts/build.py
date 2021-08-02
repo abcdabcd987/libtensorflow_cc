@@ -17,7 +17,6 @@ PRESETS = {
         TF_NEED_TENSORRT=0,
         TF_NEED_MPI=0,
         TF_CUDA_COMPUTE_CAPABILITIES="sm_35,sm_50,sm_60,sm_70,sm_75,compute_80",
-        TF_CUDA_PATHS="/usr/local/cuda,/usr",
         TF_CUDA_CLANG=0,
         TF_SET_ANDROID_WORKSPACE=0,
         TF_DOWNLOAD_CLANG=0,

@@ -8,7 +8,8 @@ case "$TF_NEED_CUDA" in
     [1yY])
         CUDA_VER="$(readlink -f /usr/local/cuda | sed "s|/usr/local/cuda-||")"
         CUDNN_MAJOR="$(gcc -I /usr/local/cuda/include -E -CC -dM /usr/include/cudnn.h | grep -Po "(?<=#define CUDNN_MAJOR )(\d+)")"
-        BUILD_SUFFIX="gpu-cuda$CUDA_VER-cudnn$CUDNN_MAJOR"
+        CUDNN_MINOR="$(gcc -I /usr/local/cuda/include -E -CC -dM /usr/include/cudnn.h | grep -Po "(?<=#define CUDNN_MINOR )(\d+)")"
+        BUILD_SUFFIX="gpu-cuda$CUDA_VER-cudnn$CUDNN_MAJOR.$CUDNN_MINOR"
         ;;
     *)
         exit 1
@@ -45,6 +46,7 @@ sed -i "$HEADERS_LINE,+5s/:core_cpu/:core/" tensorflow/core/BUILD
 # Build libtensorflow_cc
 export PYTHON_BIN_PATH=$(which python3)
 export PYTHON_LIB_PATH=$(python3 -c 'import site; print(site.getsitepackages()[0])')
+export TF_CUDA_PATHS="$(readlink -f /usr/local/cuda),/usr"
 if [ -z "$CROSSTOOL_TOP" ]; then
     CROSSTOOL_TOP_CONFIG=""
 else
